@@ -15,6 +15,8 @@ public class VagaService {
 
     private final VagaRepository vagaRepository;
 
+
+
     @Transactional
     public Vaga salvar(Vaga vaga) {
         try {
@@ -30,6 +32,13 @@ public class VagaService {
     public Vaga buscarPorCodigo(String codigo) {
         return vagaRepository.findByCodigo(codigo).orElseThrow(
                 () -> new EntityNotFoundException(String.format("Vaga com código '%s' não foi encontrada", codigo))
+        );
+    }
+
+    @Transactional(readOnly = true)
+    public Vaga buscarVagaVazia() {
+        return vagaRepository.findFistByStatus().orElseThrow(
+                ()->new EntityNotFoundException("Nenhuma vaga encontrada")
         );
     }
 }
