@@ -1,5 +1,6 @@
 package com.mballem.demoparkapi.entity;
 
+import com.mballem.demoparkapi.enums.Status;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.data.annotation.CreatedBy;
@@ -24,7 +25,7 @@ public class Vaga implements Serializable {
     private String codigo;
     @Column(name = "status", nullable = false)
     @Enumerated(EnumType.STRING)
-    private StatusVaga status;
+    private Status status;
     @CreatedDate
     @Column(name = "data_criacao")
     private LocalDateTime dataCriacao;
@@ -38,9 +39,6 @@ public class Vaga implements Serializable {
     @Column(name = "modificado_por")
     private String modificadoPor;
 
-    public enum StatusVaga {
-        LIVRE, OCUPADA
-    }
 
     @Override
     public boolean equals(Object o) {

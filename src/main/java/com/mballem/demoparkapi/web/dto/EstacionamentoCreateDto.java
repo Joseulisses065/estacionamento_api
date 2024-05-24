@@ -17,7 +17,7 @@ import org.hibernate.validator.constraints.br.CPF;
 public class EstacionamentoCreateDto {
     @NotBlank
     @Size(min = 8, max = 8)
-    @Pattern(regexp = "[A-Z]{3}-[0-9]{4}}", message = "The plate must follow this standard XXX-0000")
+    @Pattern(regexp = "[A-Z]{3}-[0-9]{4}", message = "The plate must follow this standard XXX-0000")
     private String placa;
     @NotBlank
     private String marca;
