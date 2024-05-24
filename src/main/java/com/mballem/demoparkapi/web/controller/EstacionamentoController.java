@@ -1,6 +1,7 @@
 package com.mballem.demoparkapi.web.controller;
 
 import com.mballem.demoparkapi.entity.ClienteVaga;
+import com.mballem.demoparkapi.service.ClieteVagaService;
 import com.mballem.demoparkapi.service.EstacionamentoService;
 import com.mballem.demoparkapi.web.dto.EstacionamentoCreateDto;
 import com.mballem.demoparkapi.web.dto.EstacionamentoResponseDto;
@@ -18,10 +19,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
@@ -32,6 +30,8 @@ import java.net.URI;
 @Tag(name = "Estacionamento",description = "Contém todas as opereções relativas ao recurso de um estacionamento")
 public class EstacionamentoController {
     private final EstacionamentoService estacionamentoService;
+    private final ClieteVagaService clieteVagaService;
+
 
 
     @Operation(summary = "Operação de check-in no estacionamento", description = "Recurso para dar entrada de um veiculo no estacionamento." +
@@ -62,5 +62,13 @@ public class EstacionamentoController {
         EstacionamentoResponseDto responseDto = ClienteVagaMapper.toDto(clienteVaga);
         URI location = ServletUriComponentsBuilder.fromCurrentRequestUri().path("/{recibo}").buildAndExpand(clienteVaga.getRecibo()).toUri();
         return ResponseEntity.created(location).body(responseDto);
+    }
+
+    @GetMapping("/check-in/{recibo}")
+    @PreAuthorize("hasAnyRole('ADMIN','CLIENTE')")
+    public ResponseEntity<EstacionamentoResponseDto> getByRecibo(@PathVariable String recibo){
+        ClienteVaga clienteVaga = clieteVagaService.buscarRecibo(recibo);
+        EstacionamentoResponseDto dt = ClienteVagaMapper.toDto(clienteVaga);
+        return ResponseEntity.ok(dt);
     }
 }
