@@ -47,10 +47,6 @@ public class EstacionamentoUtils {
 
     }
 
-    public static void main(String[]args){
-        System.out.println(calcularDesconto(new BigDecimal(5.00),13..19));
-    }
-
     public static BigDecimal calcularDesconto(BigDecimal custo, long numeroDeVezes) {
 
         // Complete o código com a sua lógica

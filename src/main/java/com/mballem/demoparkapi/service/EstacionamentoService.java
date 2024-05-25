@@ -9,6 +9,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 @Service
@@ -20,7 +21,7 @@ public class EstacionamentoService {
     private final VagaService vagaService;
 
     @Transactional
-    public ClienteVaga checkIn(ClienteVaga clienteVaga){
+    public ClienteVaga checkIn(ClienteVaga clienteVaga) {
         Cliente cliente = clienteService.buscarPorCpf(clienteVaga.getCliente().getCpf());
         clienteVaga.setCliente(cliente);
         Vaga vaga = vagaService.buscarVagaVazia();
@@ -29,5 +30,20 @@ public class EstacionamentoService {
         clienteVaga.setDataEntrada(LocalDateTime.now());
         clienteVaga.setRecibo(EstacionamentoUtils.GerarRecibo());
         return clieteVagaService.save(clienteVaga);
+    }
+
+    @Transactional
+    public ClienteVaga checkOut(String recibo) {
+        ClienteVaga clienteVaga = clieteVagaService.buscarRecibo(recibo);
+        LocalDateTime dataSaida = LocalDateTime.now();
+        BigDecimal valor = EstacionamentoUtils.calcularCusto(clienteVaga.getDataEntrada(), dataSaida);
+        clienteVaga.setValor(valor);
+        Long totalDeVezes = clieteVagaService.getTotalDeVezesEstacionamentoCompleto(clienteVaga.getCliente().getCpf());
+        BigDecimal desconto = EstacionamentoUtils.calcularDesconto(valor, totalDeVezes);
+        clienteVaga.setDesconto(desconto);
+        clienteVaga.setDataSaida(dataSaida);
+        clienteVaga.getVaga().setStatus(Status.LIVRE);
+        return clieteVagaService.save(clienteVaga);
+
     }
 }
