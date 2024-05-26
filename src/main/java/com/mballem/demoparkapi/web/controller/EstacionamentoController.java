@@ -71,7 +71,23 @@ public class EstacionamentoController {
         EstacionamentoResponseDto dt = ClienteVagaMapper.toDto(clienteVaga);
         return ResponseEntity.ok(dt);
     }
-
+    @Operation(summary = "Operação de check-out no estacionamento", description = "Recurso para dar saida de um veiculo no estacionamento." +
+            "Requisição exige uso de um bearer token. Acesso restrito a Role='ADMIN'",
+            security = @SecurityRequirement(name = "security"),
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Recurso criado com sucesso",
+                            content = @Content(mediaType = "application/json;charset=UTF-8",
+                                    schema = @Schema(implementation = EstacionamentoResponseDto.class))),
+                    @ApiResponse(responseCode = "404", description = "Causas possiveis:<br/>"+
+                            "-Nenhum recibo existente<br/>"+
+                            "-Veículo já passou pelo check-out",
+                            content = @Content(mediaType = " application/json;charset=UTF-8",
+                                    schema = @Schema(implementation = ErrorMessage.class))),
+                    @ApiResponse(responseCode = "403", description = "Recurso não permito ao perfil de CLIENTE",
+                            content = @Content(mediaType = " application/json;charset=UTF-8",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            })
     @PutMapping("/check-out/{recibo}")
     @PreAuthorize("hasAnyRole('ADMIN')")
     public ResponseEntity<EstacionamentoResponseDto> checkout(@PathVariable String recibo){

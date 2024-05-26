@@ -26,7 +26,7 @@ public class EstacionamentoIT {
                 .cor("VERMELHO")
                 .clienteCpf("98401203015")
                 .build();
-        testClient.post().uri("/api/v1/estacionamentos/check-in")
+        testClient.post().uri("/api/v1/estacionamentos/check-in/{recibo}","20230313-101300")
                 .contentType(MediaType.APPLICATION_JSON)
                 .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@email.com.br", "123456"))
                 .bodyValue(createDto)
@@ -42,8 +42,6 @@ public class EstacionamentoIT {
                 .jsonPath("recibo").exists()
                 .jsonPath("dataEntrada").exists()
                 .jsonPath("vagaCodigo").exists();
-
-
     }
 
     @Test
@@ -65,8 +63,6 @@ public class EstacionamentoIT {
                 .jsonPath("status").isEqualTo(403)
                 .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-in")
                 .jsonPath("method").isEqualTo("POST");
-
-
     }
 
     @Test
@@ -88,8 +84,6 @@ public class EstacionamentoIT {
                 .jsonPath("status").isEqualTo(422)
                 .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-in")
                 .jsonPath("method").isEqualTo("POST");
-
-
     }
 
     @Test
@@ -111,8 +105,6 @@ public class EstacionamentoIT {
                 .jsonPath("status").isEqualTo(404)
                 .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-in")
                 .jsonPath("method").isEqualTo("POST");
-
-
     }
 
     @Sql(scripts = "/sql/estacionamentos/estacionamento-insert-vagas-ocupadas.sql", executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
@@ -136,8 +128,6 @@ public class EstacionamentoIT {
                 .jsonPath("status").isEqualTo(404)
                 .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-in")
                 .jsonPath("method").isEqualTo("POST");
-
-
     }
 
     @Test
@@ -155,7 +145,6 @@ public class EstacionamentoIT {
                 .jsonPath("recibo").isEqualTo("20230313-101300")
                 .jsonPath("dataEntrada").isEqualTo("2023-03-13 10:15:00")
                 .jsonPath("vagaCodigo").isEqualTo("A-01");
-
     }
 
     @Test
@@ -173,7 +162,6 @@ public class EstacionamentoIT {
                 .jsonPath("recibo").isEqualTo("20230313-101300")
                 .jsonPath("dataEntrada").isEqualTo("2023-03-13 10:15:00")
                 .jsonPath("vagaCodigo").isEqualTo("A-01");
-
     }
 
     @Test
@@ -186,8 +174,56 @@ public class EstacionamentoIT {
                 .jsonPath("status").isEqualTo(404)
                 .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-in/20230344-101300")
                 .jsonPath("method").isEqualTo("GET");
-
     }
+
+    @Test
+    public void checkout_comReciboExistente_RetornarSucesso() {
+        testClient.put()
+                .uri("/api/v1/estacionamentos/check-out/{recibo}", "20230313-101300")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@email.com.br", "123456"))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("placa").isEqualTo("FIT-1020")
+                .jsonPath("marca").isEqualTo("FIAT")
+                .jsonPath("modelo").isEqualTo("PALIO")
+                .jsonPath("cor").isEqualTo("VERDE")
+                .jsonPath("clienteCpf").isEqualTo("98401203015")
+                .jsonPath("dataEntrada").isEqualTo("2023-03-13 10:15:00")
+                .jsonPath("dataSaida").exists()
+                .jsonPath("recibo").isEqualTo("20230313-101300")
+                .jsonPath("vagaCodigo").isEqualTo("A-01")
+                .jsonPath("valor").exists()
+                .jsonPath("desconto").exists();
+    }
+
+    @Test
+    public void checkout_comReciboInexistente_RetornarErro404() {
+        testClient.put()
+                .uri("/api/v1/estacionamentos/check-out/{recibo}", "20230313-101303")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "ana@email.com.br", "123456"))
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("status").isEqualTo(404)
+                .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-out/20230313-101303")
+                .jsonPath("method").isEqualTo("PUT");
+    }
+
+    @Test
+    public void checkout_comUsuarioCliente_RetornarErro403() {
+        testClient.put()
+                .uri("/api/v1/estacionamentos/check-out/{recibo}", "20230313-101300")
+                .headers(JwtAuthentication.getHeaderAuthorization(testClient, "bia@email.com.br", "123456"))
+                .exchange()
+                .expectStatus().isForbidden()
+                .expectBody()
+                .jsonPath("status").isEqualTo(403)
+                .jsonPath("path").isEqualTo("/api/v1/estacionamentos/check-out/20230313-101300")
+                .jsonPath("method").isEqualTo("PUT");
+    }
+
+
 
 
 }
