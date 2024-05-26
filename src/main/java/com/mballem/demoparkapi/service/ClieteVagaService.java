@@ -2,6 +2,7 @@ package com.mballem.demoparkapi.service;
 
 import com.mballem.demoparkapi.entity.ClienteVaga;
 import com.mballem.demoparkapi.exception.EntityNotFoundException;
+import com.mballem.demoparkapi.jwt.JwtUserDetails;
 import com.mballem.demoparkapi.repository.ClienteVagaRepository;
 import com.mballem.demoparkapi.repository.projection.ClienteVagaProjection;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +21,7 @@ public class ClieteVagaService {
         return clienteVagaRepository.save(clientVacancy);
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public ClienteVaga buscarRecibo(String recibo) {
         return clienteVagaRepository.findByReciboAndDataSaidaIsNull(recibo).orElseThrow(
                 () -> new EntityNotFoundException(String.format("Recibo '%s' não encontrado ou checkout já realizado", recibo)
@@ -28,12 +29,18 @@ public class ClieteVagaService {
         );
     }
 
-    @Transactional
+    @Transactional(readOnly = true)
     public Long getTotalDeVezesEstacionamentoCompleto(String cpf) {
         return clienteVagaRepository.countByClienteCpfAndDataSaidaIsNotNull(cpf);
     }
 
+    @Transactional(readOnly = true)
     public Page<ClienteVagaProjection> buscarTodosPorClienteCpf(String cpf, Pageable pageable) {
         return clienteVagaRepository.findAllByClienteCpf(cpf,pageable);
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ClienteVagaProjection> buscarTodosPorUsuarioId(Long userId, Pageable pageable) {
+        return clienteVagaRepository.findAllByClienteUsuarioId(userId,pageable);
     }
 }

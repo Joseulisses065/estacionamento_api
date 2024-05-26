@@ -1,12 +1,14 @@
 package com.mballem.demoparkapi.web.controller;
 
 import com.mballem.demoparkapi.entity.ClienteVaga;
+import com.mballem.demoparkapi.jwt.JwtUserDetails;
 import com.mballem.demoparkapi.repository.projection.ClienteVagaProjection;
 import com.mballem.demoparkapi.service.ClieteVagaService;
 import com.mballem.demoparkapi.service.EstacionamentoService;
 import com.mballem.demoparkapi.web.dto.EstacionamentoCreateDto;
 import com.mballem.demoparkapi.web.dto.EstacionamentoResponseDto;
 import com.mballem.demoparkapi.web.dto.PageableDto;
+import com.mballem.demoparkapi.web.dto.UsuarioSenhaDto;
 import com.mballem.demoparkapi.web.dto.mapper.ClienteVagaMapper;
 import com.mballem.demoparkapi.web.dto.mapper.PageableMapper;
 import com.mballem.demoparkapi.web.exception.ErrorMessage;
@@ -28,6 +30,7 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
@@ -134,7 +137,42 @@ public class EstacionamentoController {
     @GetMapping("/cpf/{cpf}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<PageableDto> getAllEstacionamentosCpf(@PathVariable String cpf, @PageableDefault(size = 5, sort = "dataEntrada", direction = Sort.Direction.ASC) Pageable pageable) {
-        Page<ClienteVagaProjection> projection = clieteVagaService.buscarTodosPorClienteCpf(cpf,pageable);
+        Page<ClienteVagaProjection> projection = clieteVagaService.buscarTodosPorClienteCpf(cpf, pageable);
+        PageableDto dto = PageableMapper.toDto(projection);
+        return ResponseEntity.ok(dto);
+    }
+
+    @Operation(summary = "Localiza os registros de estacionamento do cliente com base no id", description = "Recurso que localiza os registros de estacionamento do cliente com base no id." +
+            "Requisição exige uso de um bearer token. Acesso restrito a Role='CLIENTE'",
+            security = @SecurityRequirement(name = "security"),
+            parameters = {
+                    @Parameter(in = QUERY, name = "page",
+                            content = @Content(schema = @Schema(type = "integer", defaultValue = "0")),
+                            description = "Representa a página retornada"
+                    ),
+                    @Parameter(in = QUERY, name = "size",
+                            content = @Content(schema = @Schema(type = "integer", defaultValue = "5")),
+                            description = "Representa o total de elementos por página"
+                    ),
+                    @Parameter(in = QUERY, name = "sort", hidden = true,
+                            array = @ArraySchema(schema = @Schema(type = "string", defaultValue = "dataEntrada.asc")),
+                            description = "Representa a ordenação dos resultados. Aceita multiplos critérios de ordenação são suportados."),
+            },
+            responses = {
+                    @ApiResponse(responseCode = "200", description = "Recurso criado com sucesso",
+                            content = @Content(mediaType = "application/json;charset=UTF-8",
+                                    schema = @Schema(implementation = EstacionamentoResponseDto.class))),
+                    @ApiResponse(responseCode = "403", description = "Recurso não permito ao perfil de CLIENTE",
+                            content = @Content(mediaType = " application/json;charset=UTF-8",
+                                    schema = @Schema(implementation = ErrorMessage.class))
+                    )
+            })
+    @GetMapping
+    @PreAuthorize("hasRole('CLIENTE')")
+    public ResponseEntity<PageableDto> getAllEstacionamentosDoCliente(@AuthenticationPrincipal JwtUserDetails user,
+                                                                      @PageableDefault(size = 5, sort = "dataEntrada",
+                                                                              direction = Sort.Direction.ASC) Pageable pageable) {
+        Page<ClienteVagaProjection> projection = clieteVagaService.buscarTodosPorUsuarioId(user.getId(), pageable);
         PageableDto dto = PageableMapper.toDto(projection);
         return ResponseEntity.ok(dto);
     }
