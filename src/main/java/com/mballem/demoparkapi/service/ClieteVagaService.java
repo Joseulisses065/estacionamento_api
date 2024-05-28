@@ -2,6 +2,7 @@ package com.mballem.demoparkapi.service;
 
 import com.mballem.demoparkapi.entity.ClienteVaga;
 import com.mballem.demoparkapi.exception.EntityNotFoundException;
+import com.mballem.demoparkapi.exception.ReciboNotFoundException;
 import com.mballem.demoparkapi.jwt.JwtUserDetails;
 import com.mballem.demoparkapi.repository.ClienteVagaRepository;
 import com.mballem.demoparkapi.repository.projection.ClienteVagaProjection;
@@ -24,8 +25,7 @@ public class ClieteVagaService {
     @Transactional(readOnly = true)
     public ClienteVaga buscarRecibo(String recibo) {
         return clienteVagaRepository.findByReciboAndDataSaidaIsNull(recibo).orElseThrow(
-                () -> new EntityNotFoundException(String.format("Recibo '%s' não encontrado ou checkout já realizado", recibo)
-                )
+                () -> new ReciboNotFoundException("Recibo",recibo)
         );
     }
 
